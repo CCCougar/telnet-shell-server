@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -24,16 +26,6 @@ func main() {
 		//@TODO: Handle this error better.
 		panic(err)
 	}
-
-	// for {
-	// 	conn, err := listener.Accept()
-	// 	if err != nil {
-	// 		fmt.Println("listner Accept error: ", err)
-	// 		continue
-	// 	}
-
-	// 	go this.Handler(conn)
-	// }
 
 }
 
@@ -64,14 +56,61 @@ func (handler internalEchoHandler) ServeTELNET(ctx telnet.Context, w telnet.Writ
 		}
 		fmt.Printf("******DEBUG****** >>>>>execting: " + commandToExec + "\n")
 
-		name := strings.Fields(commandToExec)[0]
-		args := strings.Fields(commandToExec)[1:]
+		arg := strings.Fields(commandToExec)
 
-		// --------------exec command----------------
-		// out, err := exec.Command("date").Output()
-		// out, err := exec.Command(commandToExec[:comLen-1]).Output()
-		// out, err := exec.Command("cat", "/etc/passwd").Output()
+		name := arg[0]
+		args := arg[1:]
+
+		switch name {
+
+		case "cd":
+			// 'cd' to home dir with empty path not yet supported.
+			if len(args) < 1 {
+				// errors.New("path required")
+				oi.LongWrite(w, []byte("path required"))
+				commandToExec = ""
+				comLen = 0
+				continue
+			}
+			err := os.Chdir(args[0])
+			if err != nil {
+				fmt.Println(err)
+			}
+			commandToExec = ""
+			comLen = 0
+			continue
+		case "dir":
+			files, _ := ioutil.ReadDir("./")
+			for _, f := range files {
+				oi.LongWrite(w, []byte(f.Name()+"\n"))
+			}
+			commandToExec = ""
+			comLen = 0
+			continue
+		case "exit":
+			os.Exit(0)
+			break
+		case "execute":
+			if len(args) < 1 {
+				// errors.New("path required")
+				oi.LongWrite(w, []byte("what file to execute?"))
+				commandToExec = ""
+				comLen = 0
+				continue
+			}
+			// There maybe some problems
+			output, err := exec.Command(args[0]).Output()
+			if err != nil {
+				fmt.Println(err)
+			}
+			oi.LongWrite(w, []byte(output))
+			commandToExec = ""
+			comLen = 0
+			continue
+		}
+
 		out, err := exec.Command(name, args...).Output()
+		// out, err := exec.Command("/bin/bash", "-c", commandToExec).Output()
 
 		// name := "echo"
 		// args := []string{"hello", "world"}
