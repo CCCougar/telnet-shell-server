@@ -46,7 +46,8 @@ func (handler internalEchoHandler) ServeTELNET(ctx telnet.Context, w telnet.Writ
 	// 	log.Fatal(err)
 	// }
 
-	cmd.Start()
+	// cmd.Run() // Run starts the specified command and waits for it to complete.
+	cmd.Start() // Start starts the specified command but does not wait for it to complete.
 
 	for {
 		// Print propt
