@@ -69,6 +69,9 @@ func (handler internalEchoHandler) ServeTELNET(ctx telnet.Context, w telnet.Writ
 			continue
 		}
 		theCommand := commandToExec[:len(commandToExec)-1] // get rid of the last byte "\x0d"
+		if theCommand == "quit" || theCommand == "exit" {
+			break
+		}
 		fmt.Printf("******DEBUG****** >>>>> execting: " + theCommand + "\n")
 		io.WriteString(stdin, fmt.Sprintf("%s\n", theCommand))
 
@@ -76,6 +79,8 @@ func (handler internalEchoHandler) ServeTELNET(ctx telnet.Context, w telnet.Writ
 		comLen = 0
 	}
 }
+
+// local interactive shell
 
 // package main
 
@@ -105,4 +110,3 @@ func (handler internalEchoHandler) ServeTELNET(ctx telnet.Context, w telnet.Writ
 // 		io.WriteString(stdin, fmt.Sprintf("%s\n", input))
 // 	}
 // }
-// interactive shell
